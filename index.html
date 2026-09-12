@@ -397,6 +397,75 @@ const PRODUCT = { name: 'كشاف رأس BEETRO المحمول', price: 2100 };
 let qty = 1;
 let deliveryMode = 'home';
 
+/* ---------- جدول أسعار التوصيل حسب الولاية (منزل / مكتب-ستوب ديسك) ---------- */
+const DELIVERY_PRICES = {
+  'أدرار': { home: 1650, office: 1450 },
+  'الشلف': { home: 700, office: 550 },
+  'الأغواط': { home: 1150, office: 950 },
+  'أم البواقي': { home: 800, office: 650 },
+  'باتنة': { home: 800, office: 650 },
+  'بجاية': { home: 400, office: 300 },
+  'بسكرة': { home: 1150, office: 950 },
+  'بشار': { home: 1650, office: 1450 },
+  'البليدة': { home: 590, office: 450 },
+  'البويرة': { home: 700, office: 550 },
+  'تمنراست': { home: 1650, office: 1450 },
+  'تبسة': { home: 1150, office: 950 },
+  'تلمسان': { home: 800, office: 650 },
+  'تيارت': { home: 900, office: 750 },
+  'تيزي وزو': { home: 700, office: 550 },
+  'الجزائر': { home: 700, office: 550 },
+  'الجلفة': { home: 900, office: 750 },
+  'جيجل': { home: 800, office: 650 },
+  'سطيف': { home: 800, office: 650 },
+  'سعيدة': { home: 900, office: 750 },
+  'سكيكدة': { home: 800, office: 650 },
+  'سيدي بلعباس': { home: 800, office: 650 },
+  'عنابة': { home: 800, office: 650 },
+  'قالمة': { home: 800, office: 650 },
+  'قسنطينة': { home: 800, office: 650 },
+  'المدية': { home: 800, office: 650 },
+  'مستغانم': { home: 800, office: 650 },
+  'المسيلة': { home: 800, office: 650 },
+  'معسكر': { home: 800, office: 650 },
+  'ورقلة': { home: 1150, office: 950 },
+  'وهران': { home: 800, office: 650 },
+  'البيض': { home: 1650, office: 1450 },
+  'إليزي': { home: 1650, office: 1450 },
+  'برج بوعريريج': { home: 800, office: 650 },
+  'بومرداس': { home: 700, office: 550 },
+  'الطارف': { home: 900, office: 750 },
+  'تندوف': { home: 1650, office: 1450 },
+  'تيسمسيلت': { home: 900, office: 750 },
+  'الوادي': { home: 1150, office: 950 },
+  'خنشلة': { home: 900, office: 750 },
+  'سوق أهراس': { home: 900, office: 750 },
+  'تيبازة': { home: 700, office: 550 },
+  'ميلة': { home: 800, office: 650 },
+  'عين الدفلى': { home: 800, office: 650 },
+  'النعامة': { home: 1650, office: 1450 },
+  'عين تموشنت': { home: 900, office: 750 },
+  'غرداية': { home: 1150, office: 950 },
+  'غليزان': { home: 800, office: 650 },
+  'تيميمون': { home: 1650, office: 1450 },
+  'برج باجي مختار': { home: 1650, office: 1450 },
+  'أولاد جلال': { home: 1150, office: 950 },
+  'بني عباس': { home: 1650, office: 1450 },
+  'عين صالح': { home: 1650, office: 1450 },
+  'عين قزام': { home: 1650, office: 1450 },
+  'تقرت': { home: 1150, office: 950 },
+  'جانت': { home: 1650, office: 1450 },
+  'المغير': { home: 1150, office: 950 },
+  'المنيعة': { home: 1150, office: 950 }
+};
+
+function getDeliveryPrice(){
+  const w = document.getElementById('wilaya').value;
+  const entry = DELIVERY_PRICES[w];
+  if(!entry) return 0;
+  return deliveryMode === 'home' ? entry.home : entry.office;
+}
+
 /* ---------- Image carousel ---------- */
 let slideIndex = 0;
 const slideCount = 3;
@@ -432,8 +501,12 @@ function setDelivery(el){
 
 function updateSummary(){
   document.getElementById('sumProduct').textContent = PRODUCT.name + ' × ' + qty;
-  document.getElementById('sumDelivery').textContent = deliveryMode==='home' ? 'للمنزل' : 'للمكتب';
-  const total = qty * PRODUCT.price;
+  const deliveryFee = getDeliveryPrice();
+  const deliveryLabel = deliveryMode==='home' ? 'للمنزل' : 'للمكتب';
+  document.getElementById('sumDelivery').textContent = deliveryFee > 0
+    ? deliveryLabel + ' (' + deliveryFee.toLocaleString('ar-DZ') + ' دج)'
+    : deliveryLabel;
+  const total = (qty * PRODUCT.price) + deliveryFee;
   document.getElementById('sumTotal').textContent = total.toLocaleString('ar-DZ') + ' دج';
 }
 
@@ -467,7 +540,7 @@ function sendPartialSnapshot(){
 
   if(!phone) return;
 
-  const totalVal = qty * PRODUCT.price;
+  const totalVal = (qty * PRODUCT.price) + getDeliveryPrice();
 
   sendToSheet({
     name: fullName, phone: phone, wilaya: wilaya, city: wilaya, state: wilaya,
@@ -485,6 +558,7 @@ function schedulePartialSnapshot(){
   el.addEventListener('blur', schedulePartialSnapshot);
   el.addEventListener('change', schedulePartialSnapshot);
 });
+document.getElementById('wilaya').addEventListener('change', updateSummary);
 
 /* ---------- Form validation & submit ---------- */
 function validateField(id, testFn){
@@ -510,7 +584,7 @@ function submitOrder(){
   const phone = document.getElementById('phone').value.trim();
   const wilaya = document.getElementById('wilaya').value;
   const commune = document.getElementById('commune').value.trim();
-  const totalVal = qty * PRODUCT.price;
+  const totalVal = (qty * PRODUCT.price) + getDeliveryPrice();
   const delivery = deliveryMode;
 
   // Stash the order details; the phone number can still be corrected before it's actually sent.
