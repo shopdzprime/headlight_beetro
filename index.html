@@ -457,16 +457,6 @@ function sendToSheet(data){
   });
 }
 
-/* ---------- Visit tracking (fires as soon as the landing page opens) ---------- */
-window.addEventListener('load', function(){
-  sendToSheet({
-    name: '', phone: '', wilaya: '', city: '', state: '',
-    commune: '', municipality: '', baladiya: '', address: '',
-    size: PRODUCT.name, qty: '', delivery: '', total: '',
-    source: 'promo', status: 'زيارة للصفحة', product: PRODUCT.name
-  }).catch(()=>{});
-});
-
 /* ---------- Partial / incomplete order tracking ---------- */
 let partialTimer = null;
 function sendPartialSnapshot(){
@@ -475,7 +465,7 @@ function sendPartialSnapshot(){
   const wilaya = document.getElementById('wilaya').value;
   const commune = document.getElementById('commune').value.trim();
 
-  if(!fullName && !phone && !wilaya && !commune) return;
+  if(!phone) return;
 
   const totalVal = qty * PRODUCT.price;
 
